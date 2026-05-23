@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const isMin = item.quantity === 1;
         return `
             <li data-id="${item.id}">
-                <span class="product-name">${escapeHtml(item.name)}</span>
+                <span class="product-name" data-action="edit">${escapeHtml(item.name)}</span>
                 <div class="counter">
                     <button type="button" class="btn-minus${isMin ? " is-disabled" : ""}" aria-label="Зменшити кількість" data-tooltip="${isMin ? "Мінімальна кількість" : "Зменшити"}" data-action="decrement"> − </button>
                     <span class="amount">${item.quantity}</span>
@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
         renderStats();
     }
 
-    function handleAction(action, item) {
+    function handleAction(action, item, li) {
         switch (action) {
             case "toggle":
                 item.purchased = !item.purchased;
@@ -90,7 +90,36 @@ document.addEventListener("DOMContentLoaded", () => {
                     render();
                 }
                 break;
+            case "edit":
+                startEditing(li, item);
+                break;
         }
+    }
+
+    function startEditing(li, item) {
+        const nameEl = li.querySelector(".product-name");
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "product-name-input";
+        input.value = item.name;
+        nameEl.replaceWith(input);
+        input.focus();
+        input.select();
+
+        const finish = () => {
+            const newName = input.value.trim();
+            if (newName) item.name = newName;
+            render();
+        };
+
+        input.addEventListener("blur", finish, { once: true });
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") input.blur();
+            if (e.key === "Escape") {
+                input.value = item.name;
+                input.blur();
+            }
+        });
     }
 
     listEl.addEventListener("click", (e) => {
@@ -101,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const id = parseInt(li.dataset.id);
         const item = items.find(i => i.id === id);
         if (!item) return;
-        handleAction(actionEl.dataset.action, item);
+        handleAction(actionEl.dataset.action, item, li);
     });
 
     formEl.addEventListener("submit", (e) => {

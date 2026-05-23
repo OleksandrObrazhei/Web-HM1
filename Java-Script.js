@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="counter counter--static">
                         <span class="amount">${item.quantity}</span>
                     </div>
-                    <button type="button" class="btn-buy" data-tooltip="Повернути в список">
+                    <button type="button" class="btn-buy" data-tooltip="Повернути в список" data-action="toggle">
                         Не куплено
                     </button>
                 </li>
@@ -40,14 +40,14 @@ document.addEventListener("DOMContentLoaded", () => {
             <li data-id="${item.id}">
                 <span class="product-name">${escapeHtml(item.name)}</span>
                 <div class="counter">
-                    <button type="button" class="btn-minus${isMin ? " is-disabled" : ""}" aria-label="Зменшити кількість" data-tooltip="${isMin ? "Мінімальна кількість" : "Зменшити"}"> − </button>
+                    <button type="button" class="btn-minus${isMin ? " is-disabled" : ""}" aria-label="Зменшити кількість" data-tooltip="${isMin ? "Мінімальна кількість" : "Зменшити"}" data-action="decrement"> − </button>
                     <span class="amount">${item.quantity}</span>
-                    <button type="button" class="btn-plus" aria-label="Збільшити кількість" data-tooltip="Збільшити"> + </button>
+                    <button type="button" class="btn-plus" aria-label="Збільшити кількість" data-tooltip="Збільшити" data-action="increment"> + </button>
                 </div>
-                <button type="button" class="btn-buy" data-tooltip="Позначити як куплене">
+                <button type="button" class="btn-buy" data-tooltip="Позначити як куплене" data-action="toggle">
                     Куплено
                 </button>
-                <button type="button" class="btn-delete" aria-label="Видалити товар" data-tooltip="Видалити"> × </button>
+                <button type="button" class="btn-delete" aria-label="Видалити товар" data-tooltip="Видалити" data-action="delete"> × </button>
             </li>
         `;
     }
@@ -69,6 +69,40 @@ document.addEventListener("DOMContentLoaded", () => {
         listEl.innerHTML = items.map(renderItem).join("");
         renderStats();
     }
+
+    function handleAction(action, item) {
+        switch (action) {
+            case "toggle":
+                item.purchased = !item.purchased;
+                render();
+                break;
+            case "delete":
+                items = items.filter(i => i.id !== item.id);
+                render();
+                break;
+            case "increment":
+                item.quantity++;
+                render();
+                break;
+            case "decrement":
+                if (item.quantity > 1) {
+                    item.quantity--;
+                    render();
+                }
+                break;
+        }
+    }
+
+    listEl.addEventListener("click", (e) => {
+        const actionEl = e.target.closest("[data-action]");
+        if (!actionEl) return;
+        const li = actionEl.closest("li[data-id]");
+        if (!li) return;
+        const id = parseInt(li.dataset.id);
+        const item = items.find(i => i.id === id);
+        if (!item) return;
+        handleAction(actionEl.dataset.action, item);
+    });
 
     formEl.addEventListener("submit", (e) => {
         e.preventDefault();

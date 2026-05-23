@@ -6,8 +6,11 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
 
     let items = initialItems.map((item, i) => ({ ...item, id: i + 1 }));
+    let nextId = items.length + 1;
 
     const listEl = document.querySelector(".list-card ul");
+    const formEl = document.querySelector("form");
+    const inputEl = document.getElementById("product-name");
     const statusLists = document.querySelectorAll(".status-list");
     const remainingListEl = statusLists[0];
     const purchasedListEl = statusLists[1];
@@ -66,6 +69,16 @@ document.addEventListener("DOMContentLoaded", () => {
         listEl.innerHTML = items.map(renderItem).join("");
         renderStats();
     }
+
+    formEl.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const name = inputEl.value.trim();
+        if (!name) return;
+        items.push({ id: nextId++, name, quantity: 1, purchased: false });
+        inputEl.value = "";
+        inputEl.focus();
+        render();
+    });
 
     render();
 });
